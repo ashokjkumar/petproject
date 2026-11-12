@@ -16,8 +16,31 @@ export const GUARD_THRESHOLDS_GUESS = {
   immatureBaselineCycles: 2,
 } as const;
 
-/** Publicly stated margin cap. 1600 bp = 16%. Base (price vs landed cost) is an OPEN QUESTION. */
-export const MARGIN_CAP_BP_GUESS = 1600;
+/**
+ * Publicly stated margin cap: our margin is never more than 18% of the price
+ * before GST. See DECISIONS.md D9 for why 18 and not 16.
+ */
+export const MARGIN_CAP_BP = 1800;
+
+/** Costs that scale with revenue: UPI 1.5% + captain 2% + returns 1%. GUESS. */
+export const VARIABLE_COST_BP_GUESS = 450;
+
+/** Sample limits per item. PLACEHOLDERS until mills give their spec (G12). */
+export const LOT_SPEC_PLACEHOLDER = {
+  PONNI_RICE_BOILED: { maxMoistureBp: 1400, maxBrokenBp: 500 },
+  PONNI_RICE_RAW: { maxMoistureBp: 1400, maxBrokenBp: 500 },
+  TOOR_DAL: { maxMoistureBp: 1200, maxBrokenBp: 300 },
+} as const;
+
+/**
+ * How many consecutive failed checks before a guard acts. null = notice only,
+ * never blocks. LOT_QUALITY acts on one sample. PRICE_SHOCK acts on one
+ * written quote because its action is a hold for review, not a cancellation.
+ */
+export const CHECKS_BEFORE_ACTING = {
+  MIN_HOUSEHOLDS: 2, SUPPLY_UNCONFIRMED: 2, QUOTE_STALE: 2, MARGIN_FLOOR: 2, COMPLAINT_SPIKE: 2,
+  LOT_QUALITY: 1, PRICE_SHOCK: 1, PAYMENT_SETTLED: null, DELIVERY_SLIP: null,
+} as const;
 
 /** Replacement or refund without argument, first year (section 8). */
 export const COMPLAINT_WINDOW_DAYS = 7;

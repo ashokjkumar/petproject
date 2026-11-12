@@ -6,18 +6,18 @@ import { z } from "zod";
  */
 
 /** Money in paise. ₹1 = 100 paise. Always a whole number, never negative. */
-export const Paise = z.number().int().nonnegative().brand<"Paise">();
+export const Paise = z.number().int().nonnegative();
 export type Paise = z.infer<typeof Paise>;
 
 /** Weight in grams. 25 kg = 25_000. Always a whole, positive number. */
-export const Grams = z.number().int().positive().brand<"Grams">();
+export const Grams = z.number().int().positive();
 export type Grams = z.infer<typeof Grams>;
 
 /**
  * Percentages as basis points so they stay integers.
  * 1 bp = 0.01%. 13.5% moisture = 1350. 16% margin cap = 1600.
  */
-export const BasisPoints = z.number().int().min(0).max(10_000).brand<"BasisPoints">();
+export const BasisPoints = z.number().int().min(0).max(10_000);
 export type BasisPoints = z.infer<typeof BasisPoints>;
 
 /** A moment in time, ISO-8601 with offset. The engine never reads the clock; time is injected. */

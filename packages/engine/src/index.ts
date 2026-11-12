@@ -1,10 +1,7 @@
 /**
  * Phase 1: Cycle and Pricing Engine. Pure and deterministic: no network,
- * no filesystem, no Date.now(). Nothing is built here yet; the core types
- * in @kootu/shared are under founder review first.
- *
- * Planned modules: pricing/ (open-book card, GST by pack size),
- * guards/ (the nine gates), calendar/ (seasons, festivals),
- * messages/ (Tamil + English copy), ladder/ (promise-at-risk), cli/.
+ * no filesystem, no Date.now(). All time arrives inside the inputs.
  */
-export {};
+export * from "./pricing.js";
+export * from "./guards.js";
+export * from "./format.js";

@@ -37,26 +37,50 @@ GUESS (a number to be learned from pilot data), OPEN (needs an answer).
   treated as exempt.** GUESS, sources disagree. CA to confirm.
 - **D8. Only SETTLED payment counts as a paid household.** PROPOSED.
 
-## Open conflicts found in the brief (need the founder's call)
-- **O1. The brief's own example breaks the example margin cap.** ₹9 margin on
-  a ₹55/kg price is 16.4% of price and 19.6% of landed cost; the cap example
-  is 16%. Need: the cap number and whether it is a share of price or of cost.
-- **O2. A 72-hour quote cannot cover a 5-day order window.** Orders are open
-  20th-25th. If a quote goes stale mid-window we would have to reprice orders
-  already paid, which breaks the promise. Proposal: QUOTE_STALE applies at
-  publish time, and a card may publish only if the mill's written validity
-  runs through lot lock (26th).
-- **O3. PAYMENT_SETTLED as written can punish paid households.** "Fewer than
-  95% settled blocks the mill PO" would stop everyone's order because a few
-  neighbours had not paid. Proposal: the PO always goes out for settled orders
-  only; unsettled orders roll to the next cycle; below 95% raises a human
-  review (likely a UPI outage) instead of a block.
-- **O4. How does a standing order get paid?** Auto-debit needs a UPI mandate;
-  a monthly pay link needs one tap. Proposal for the pilot: monthly pay link,
-  where paying is the confirmation and not paying is a skip. No mandates.
-- **O5. "Referral between apartments" (Appendix E) vs "no referral bonuses"
-  (section 10).** Proposal: an unrewarded introduction is fine; no reward.
-- **O6. The pilot may miss its own ₹100 contribution gate.** At 30 households
-  per run the model gives about ₹107; after 5% GST on the 4 kg dal pack
-  (about ₹22) it is about ₹84. Either the dal price carries the GST, or the
-  gate should be read at 40 households.
+- **D9. Margin: fixed rupees per kg, capped at 18% of the price before GST.**
+  DECIDED 12 Nov 2026 (founder delegated: "profitable for me and for
+  customers"). Starting margins: ponni ₹9/kg, toor dal ₹12/kg. Why fixed
+  rupees: our costs (truck, captain, testing) are in rupees, so a fixed rupee
+  margin keeps us whole when mill prices fall and stops us earning more when
+  they rise; every rise the resident sees is the mill's. Why 18 and not 16:
+  ₹9 on a ₹55 price is already 16.4%, and it reaches 17.3% if the mill price
+  falls to ₹40 at harvest. 18% lets the margin stay fixed through a harvest
+  drop. The engine refuses to produce a price above the cap.
+- **D10. GST is shown as its own line and passed through.** DECIDED with D9.
+  At 30 households per run this gives about ₹106 contribution per household
+  (gate: ₹100); absorbing GST on dal would give about ₹84 and fail the gate.
+- **D11. Three guard states: PASS, WATCH, BLOCK.** PROPOSED. WATCH means the
+  gated step waits and a human is told, but nothing is cancelled, rejected or
+  paused. Only BLOCK counts as a guard having acted.
+- **D12. Checks before acting.** PROPOSED. Two consecutive failed checks for
+  MIN_HOUSEHOLDS, SUPPLY_UNCONFIRMED, QUOTE_STALE, MARGIN_FLOOR and
+  COMPLAINT_SPIKE. One for LOT_QUALITY (per brief). One for PRICE_SHOCK,
+  which departs from the brief's wording: its action is a hold for human
+  review, not a cancellation, and a written quote is not a noisy signal.
+- **D13. PRICE_SHOCK fires on rises only.** PROPOSED. A fall of more than 8%
+  passes, with the fall passed on in full and stated.
+- **D14. Immature apartments never trigger an automatic mill pause.**
+  PROPOSED. If every complaint in the window is from an apartment in its
+  first two cycles, a human is alerted instead.
+- **D15. An unsampled lot is held, not rejected.** PROPOSED.
+- **D16. Merging.** PROPOSED. An apartment under the minimum passes if one
+  same-route neighbour brings the combined run to the minimum.
+
+## Resolved conflicts
+- **O1. Margin cap.** Resolved by D9.
+- **O2. Quote validity.** DECIDED: QUOTE_STALE applies before publishing only,
+  and the mill's written validity must run through lot lock.
+- **O3. PAYMENT_SETTLED.** DECIDED: notice only. The mill order always covers
+  paid orders; unpaid orders roll. It never blocks.
+- **O4. Standing orders.** DECIDED: monthly pay link. Paying confirms, not
+  paying skips. No auto-debit mandates.
+
+## Still open
+- **O5. "Referral between apartments" vs "no referral bonuses".** Proposal:
+  an unrewarded introduction is fine; no reward.
+- **O7. QUOTE_STALE and MARGIN_FLOOR have no incident scenario of their own**
+  in section 6.2, so the scorecard shows no recall figure for them.
+- **O8. Several adversarial cases pass because no guard looks at the thing
+  being varied** (order volume, captain on leave). They guard against future
+  regressions more than they test today's logic.
+- **O9. Tamil copy is the builder's draft.** Needs a native-speaker read.

@@ -12,7 +12,7 @@ const ponni = {
   parts: { supplierPaise: 107_500, transportPackingPaise: 7_500, marginPaise: 22_500, gstPaise: 0 },
   gstTreatment: "EXEMPT",
   packPricePaise: 137_500,
-  previous: { cycleId: "2026-12", packPricePaise: 135_000 },
+  previous: { cycleId: "2026-12", packPricePaise: 135_000, supplierPaise: 105_000 },
   reasons: [reason],
 };
 
@@ -52,7 +52,7 @@ describe("supplier quote", () => {
 
 describe("guard result", () => {
   const result = {
-    guard: "MIN_HOUSEHOLDS", blocks: "RUN_DISPATCH", pass: false, confidence: 0.9,
+    guard: "MIN_HOUSEHOLDS", subject: "apt1", state: "WATCH", blocks: "RUN_DISPATCH", pass: false, confidence: 0.9,
     reasons: [reason], dataQuality: "COMPLETE", consecutiveFailures: 1,
     recommendation: "MERGE_WITH_NEIGHBOUR", checkedAt: "2026-12-26T09:00:00+05:30",
   };

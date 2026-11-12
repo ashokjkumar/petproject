@@ -148,7 +148,7 @@ export const PriceCardLine = z
     gstTreatment: GstTreatment,
     packPricePaise: Paise,
     /** Last cycle's price for the same pack, so "what's different" can be stated. Null = first cycle. */
-    previous: z.object({ cycleId: CycleId, packPricePaise: Paise }).nullable(),
+    previous: z.object({ cycleId: CycleId, packPricePaise: Paise, supplierPaise: Paise }).nullable(),
     /** Why the price is what it is, and why it moved. A change without its reason cannot publish. */
     reasons: z.array(Reason).min(1),
   })
@@ -187,8 +187,17 @@ export type BlockTarget = z.infer<typeof BlockTarget>;
 
 export const GuardResult = z.object({
   guard: GuardId,
+  /** What was checked: an apartment, quote or lot id. */
+  subject: z.string().min(1),
   blocks: BlockTarget,
   pass: z.boolean(),
+  /**
+   * PASS  = fine.
+   * WATCH = something looks wrong; the gated step waits and a human is told,
+   *         but nothing is cancelled, rejected or paused.
+   * BLOCK = the guard has acted (roll, reject, pause or hold for review).
+   */
+  state: z.enum(["PASS", "WATCH", "BLOCK"]),
   /** 0 to 1. Not money, so a fraction is allowed here. */
   confidence: z.number().min(0).max(1),
   /** Mandatory. Flows straight into message copy. */
