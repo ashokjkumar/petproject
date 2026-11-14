@@ -1,0 +1,34 @@
+API integration + unit test run
+Run at: 2026-11-14T06:16Z  commit: 9ba0c41
+
+
+> kootu@ test /home/claude/petproject
+> vitest run
+
+
+ RUN  v3.2.7 /home/claude/petproject
+
+ ✓ apps/api/src/api.test.ts (14 tests) 12629ms
+   ✓ consent to join > refuses to add a resident who has not confirmed themselves  1513ms
+   ✓ price card > publishes an open-book card: 25 kg ponni ₹1,375, 4 kg dal ₹495.60 with GST shown  870ms
+   ✓ price card > refuses a margin above the cap  920ms
+   ✓ price card > holds the card when the quote is stale  805ms
+   ✓ price card > holds the card when the quote expires before lot lock  761ms
+   ✓ price card > cannot be replaced once published  743ms
+   ✓ price card > rejects a quote without the ration-rice declaration  756ms
+   ✓ orders and payments > computes the order amount from the published card, never from the client  866ms
+   ✓ orders and payments > refuses a pack size that is not on the card  911ms
+   ✓ orders and payments > refuses a payment that does not match the order amount  831ms
+   ✓ dispatch goes through the guards > 16 paid households: guards pass, mill order covers paid orders, captain commission is a ledger entry  911ms
+   ✓ dispatch goes through the guards > 10 paid households: watched on the first check, rolled on the second, and no mill order either time  905ms
+   ✓ dispatch goes through the guards > no lot, no dispatch: a card line without a lot record cannot be ordered from the mill  951ms
+   ✓ dispatch goes through the guards > a lot that fails its sample stops the mill order  885ms
+ ✓ packages/simulator/src/suite.test.ts (20 tests) 62ms
+ ✓ packages/shared/src/types.test.ts (9 tests) 7ms
+ ✓ packages/engine/src/pricing.test.ts (6 tests) 6ms
+
+ Test Files  4 passed (4)
+      Tests  49 passed (49)
+   Start at  11:46:54
+   Duration  14.09s (transform 219ms, setup 0ms, collect 678ms, tests 12.70s, environment 1ms, prepare 204ms)
+
