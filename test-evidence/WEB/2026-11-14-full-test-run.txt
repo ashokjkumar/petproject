@@ -1,0 +1,38 @@
+Full test run: unit, API integration, web screens
+Run at: 2026-11-14T06:41Z  commit: bc71dea
+
+
+> kootu@ test /home/claude/petproject
+> vitest run
+
+
+ RUN  v3.2.7 /home/claude/petproject
+
+ ✓ apps/api/src/api.test.ts (17 tests) 15353ms
+   ✓ consent to join > refuses to add a resident who has not confirmed themselves  1725ms
+   ✓ price card > publishes an open-book card: 25 kg ponni ₹1,375, 4 kg dal ₹495.60 with GST shown  1020ms
+   ✓ price card > refuses a margin above the cap  811ms
+   ✓ price card > holds the card when the quote is stale  874ms
+   ✓ price card > holds the card when the quote expires before lot lock  805ms
+   ✓ price card > cannot be replaced once published  794ms
+   ✓ price card > rejects a quote without the ration-rice declaration  697ms
+   ✓ orders and payments > computes the order amount from the published card, never from the client  820ms
+   ✓ orders and payments > refuses a pack size that is not on the card  792ms
+   ✓ orders and payments > refuses a payment that does not match the order amount  872ms
+   ✓ dispatch goes through the guards > 16 paid households: guards pass, mill order covers paid orders, captain commission is a ledger entry  951ms
+   ✓ dispatch goes through the guards > 10 paid households: watched on the first check, rolled on the second, and no mill order either time  919ms
+   ✓ dispatch goes through the guards > no lot, no dispatch: a card line without a lot record cannot be ordered from the mill  980ms
+   ✓ dispatch goes through the guards > a lot that fails its sample stops the mill order  902ms
+   ✓ who may do what > refuses operations actions without the operations key  691ms
+   ✓ who may do what > lets a resident see the card, join, order once, and see only their own order  833ms
+   ✓ who may do what > shows the roster only with the captain code  863ms
+ ✓ packages/simulator/src/suite.test.ts (20 tests) 60ms
+ ✓ packages/shared/src/types.test.ts (9 tests) 7ms
+ ✓ packages/engine/src/pricing.test.ts (6 tests) 11ms
+ ✓ apps/web/src/app.test.tsx (5 tests) 409ms
+
+ Test Files  5 passed (5)
+      Tests  57 passed (57)
+   Start at  12:11:34
+   Duration  20.05s (transform 386ms, setup 0ms, collect 836ms, tests 15.84s, environment 313ms, prepare 256ms)
+
