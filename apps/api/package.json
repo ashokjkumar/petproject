@@ -1,0 +1,15 @@
+{
+  "name": "@kootu/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/app.ts",
+  "dependencies": {
+    "@kootu/engine": "workspace:*",
+    "@kootu/shared": "workspace:*",
+    "@electric-sql/pglite": "^0.2.0",
+    "drizzle-orm": "^0.38.0",
+    "fastify": "^5.0.0",
+    "zod": "^3.23.8"
+  }
+}

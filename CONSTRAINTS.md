@@ -45,8 +45,10 @@ feature. Optimise for promises kept, not orders taken.
   in plain Tamil and English.
 - Adversarial (false-positive) tests are written before each guard. A
   regression there is a build failure. Never tune the suite to pass.
-- Phase 3 does not start until the simulator and the field pilot both hit the
-  section 7 targets.
+- Phase 3 gate OVERRULED by the founder on 14 Nov 2026: backend and app are
+  built in parallel with the pilot (DECISIONS.md D17). Still in force: nothing
+  goes live to real residents beyond the pilot apartments until the section 7
+  targets are met.
 
 ## Always
 - Tamil first, English second.

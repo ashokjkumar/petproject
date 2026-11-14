@@ -66,6 +66,21 @@ GUESS (a number to be learned from pilot data), OPEN (needs an answer).
 - **D16. Merging.** PROPOSED. An apartment under the minimum passes if one
   same-route neighbour brings the combined run to the minimum.
 
+- **D17. Backend and app built in parallel with the pilot.** DECIDED by the
+  founder, 14 Nov 2026, overruling section 3 of the brief ("do not begin
+  Phase 3 until the harness and the pilot both hit the targets"). Risk
+  accepted: build cost is spent before reorder evidence exists.
+- **D18. Records are stored as validated documents (jsonb) plus lookup
+  columns.** PROPOSED. Fewer moving parts while the data shapes still change.
+- **D19. The database runs in-process (PGlite) for tests and the pilot.**
+  PROPOSED. It is real Postgres; moving to a hosted Postgres is a driver swap.
+- **D20. Payments are reconciled by hand for now.** PROPOSED. Operations
+  records each UPI payment against its order; the amount must match exactly.
+  A payment gateway needs a merchant account the company does not have yet.
+- **D21. A published price card cannot be replaced.** PROPOSED. A published
+  price is a promise.
+- **D22. The order amount is computed on the server from the card.** PROPOSED.
+
 ## Resolved conflicts
 - **O1. Margin cap.** Resolved by D9.
 - **O2. Quote validity.** DECIDED: QUOTE_STALE applies before publishing only,
