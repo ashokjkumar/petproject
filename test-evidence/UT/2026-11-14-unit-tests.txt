@@ -1,0 +1,19 @@
+Unit test run: engine, shared types, simulator suites
+Run at: 2026-11-14T06:14Z  commit: efd35c7
+
+
+> kootu@ test /home/claude/kootu
+> vitest run
+
+
+ RUN  v3.2.7 /home/claude/kootu
+
+ ✓ packages/simulator/src/suite.test.ts (20 tests) 71ms
+ ✓ packages/shared/src/types.test.ts (9 tests) 7ms
+ ✓ packages/engine/src/pricing.test.ts (6 tests) 6ms
+
+ Test Files  3 passed (3)
+      Tests  35 passed (35)
+   Start at  11:44:03
+   Duration  1.60s (transform 674ms, setup 0ms, collect 793ms, tests 84ms, environment 2ms, prepare 270ms)
+

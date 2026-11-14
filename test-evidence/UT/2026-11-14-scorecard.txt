@@ -1,0 +1,32 @@
+Scorecard run at: 2026-11-14T06:14Z  commit: efd35c7
+
+KOOTU MALIGAI: PROMISE-KEEPING SCORECARD
+7 incident scenarios, 11 adversarial scenarios
+
+Guard               type     precision  recall  false-pos rate  median latency
+MIN_HOUSEHOLDS      blocks    1.00       1.00    0.00           12 h
+SUPPLY_UNCONFIRMED  blocks    1.00       1.00    0.00           12 h
+QUOTE_STALE         blocks     n/a        n/a    0.00           n/a
+PRICE_SHOCK         blocks    1.00       1.00    0.00           0 h
+PAYMENT_SETTLED     notice    1.00       1.00    0.00           0 h
+MARGIN_FLOOR        blocks     n/a        n/a    0.00           n/a
+LOT_QUALITY         blocks    1.00       1.00    0.00           0 h
+COMPLAINT_SPIKE     blocks    1.00       1.00    0.00           6 h
+DELIVERY_SLIP       notice    1.00       1.00    0.00           0 h
+
+Wrongful cancellations, rejections or pauses on the adversarial suite: 0  (target: 0)
+Precision of blocking guards, combined suite: 1.00  (target: at least 0.95)
+
+Suppression reasons (a guard saw something but correctly did not act):
+  COMPLAINTS_NEW_APARTMENT     ## 2
+  QUOTE_STALE                  # 1
+  HOUSEHOLDS_BELOW_MIN         # 1
+  RUN_BELOW_COST               # 1
+  PAYMENTS_UNSETTLED           # 1
+
+Seed apartments over six cycles, no neighbour to merge with (paid households -> decision):
+  Tower A, Sholinganallur       30 go   |  38 go   |  50 go   |  61 go   |  71 go   |  67 go  
+  Small building, Medavakkam     8 roll |  10 roll |  12 roll |  17 go   |  17 go   |  19 go  
+  Villa community, Porur        14 roll |  19 go   |  22 go   |  30 go   |  35 go   |  40 go  
+  Older building, Tambaram       4 roll |   5 roll |   7 roll |  11 roll |  10 roll |  16 go  
+
