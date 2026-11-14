@@ -68,7 +68,13 @@ export const ledger = pgTable("ledger", {
   at: text("at").notNull(),
 });
 
+export const captainCodes = pgTable("captain_codes", {
+  apartmentId: text("apartment_id").primaryKey(),
+  code: text("code").notNull(),
+});
+
 const DDL = `
+CREATE TABLE IF NOT EXISTS captain_codes (apartment_id text PRIMARY KEY, code text NOT NULL);
 CREATE TABLE IF NOT EXISTS apartments (id text PRIMARY KEY, doc jsonb NOT NULL);
 CREATE TABLE IF NOT EXISTS residents (id text PRIMARY KEY, apartment_id text NOT NULL, flat text NOT NULL,
   name text NOT NULL, phone text NOT NULL, consent_confirmed_at text NOT NULL);

@@ -7,7 +7,7 @@ import {
   ApartmentProfile, CycleId, Grams, Instant, ItemId, ItemPricing, LotRecord, Paise, SupplierQuote,
   type CycleSnapshot, type Order, type PriceCard, type PriceCardLine, type Reason,
 } from "@kootu/shared";
-import { apartments, cycles, guardCounters, ledger, lots, orders, priceCards, quotes, residents, type Db } from "./db.js";
+import { apartments, captainCodes, cycles, guardCounters, ledger, lots, orders, priceCards, quotes, residents, type Db } from "./db.js";
 
 /** Captain commission, 2% of settled order value. GUESS G11. */
 const CAPTAIN_COMMISSION_BP = 200;
@@ -50,10 +50,33 @@ const PaymentBody = z.object({ state: z.enum(["SETTLED", "FAILED"]), amountPaise
  * The backend. It stores facts and asks the engine what may be promised;
  * it never decides on its own. `now` is injected so tests can set the date.
  */
-export function buildApp(db: Db, now: () => string): FastifyInstance {
-  const app = Fastify();
+export interface AppOptions {
+  /** Secret for operations routes. Every route is operations-only unless listed in PUBLIC. */
+  opsKey: string;
+  /** Company UPI address shown on the pay screen. Null = not configured yet. */
+  upiVpa: string | null;
+}
 
-  app.setErrorHandler((err, _req, reply) => {
+/** Routes a resident's phone may call without the operations key. Everything else is refused. */
+const PUBLIC: Array<[method: string, pattern: RegExp]> = [
+  ["GET", /^\/api\/config$/],
+  ["GET", /^\/api\/apartments\/[^/]+\/public$/],
+  ["POST", /^\/api\/apartments\/[^/]+\/residents$/],
+  ["GET", /^\/api\/residents\/[^/]+$/],
+  ["POST", /^\/api\/orders$/],
+  ["GET", /^\/api\/apartments\/[^/]+\/roster$/], // checks the captain code itself
+];
+
+export function buildApp(db: Db, now: () => string, options: AppOptions): FastifyInstance {
+  const root = Fastify();
+  root.register(async (app) => {
+  app.addHook("onRequest", async (req) => {
+    const path = req.url.split("?")[0] ?? "";
+    if (PUBLIC.some(([m, re]) => m === req.method && re.test(path))) return;
+    if (req.headers["x-ops-key"] !== options.opsKey) refuse(401, "OPERATIONS_ONLY", "This action needs the operations key.");
+  });
+
+  root.setErrorHandler((err, _req, reply) => {
     if (err instanceof Refusal) return reply.status(err.status).send({ error: err.code, reasons: err.reasons });
     if (err instanceof ZodError) return reply.status(400).send({ error: "INVALID_INPUT", reasons: err.issues });
     return reply.status(500).send({ error: "INTERNAL", reasons: String(err) });
@@ -182,6 +205,8 @@ export function buildApp(db: Db, now: () => string): FastifyInstance {
     const resident = await one(db.select().from(residents).where(eq(residents.id, body.residentId)), "Resident");
     const apt = (await one(db.select().from(apartments).where(eq(apartments.id, resident.apartmentId)), "Apartment")).doc;
     const card = (await one(db.select().from(priceCards).where(eq(priceCards.id, `${body.cycleId}:${apt.routeClusterId}`)), "Price card")).card;
+    const existing = (await db.select().from(orders).where(and(eq(orders.cycleId, body.cycleId), eq(orders.residentId, resident.id))))[0];
+    if (existing) refuse(409, "ALREADY_ORDERED", "One order per household per month.");
     let amountPaise = 0;
     for (const line of body.lines) {
       const priced = card.lines.find((l) => l.itemId === line.itemId && l.packGrams === line.packGrams)
@@ -257,5 +282,51 @@ export function buildApp(db: Db, now: () => string): FastifyInstance {
   app.get<{ Params: { id: string } }>("/apartments/:id/ledger", async (req) =>
     db.select().from(ledger).where(eq(ledger.apartmentId, req.params.id)));
 
-  return app;
+  /* ---------------- resident and captain screens ---------------- */
+
+  app.get("/config", async () => ({ upiVpa: options.upiVpa, payeeName: "Kootu Maligai" }));
+
+  /** What a resident's phone needs to show the apartment's current price card. No personal data. */
+  app.get<{ Params: { id: string } }>("/apartments/:id/public", async (req) => {
+    const apt = (await one(db.select().from(apartments).where(eq(apartments.id, req.params.id)), "Apartment")).doc;
+    const cards = (await db.select().from(priceCards)).map((r) => r.card).filter((c) => c.routeClusterId === apt.routeClusterId);
+    const card = cards.sort((a, b) => b.cycleId.localeCompare(a.cycleId))[0] ?? null;
+    const lotIds = card?.lines.flatMap((l) => (l.lotId ? [l.lotId] : [])) ?? [];
+    const allQuotes = (await db.select().from(quotes)).map((r) => r.doc);
+    const lotInfo = (await db.select().from(lots)).map((r) => r.doc).filter((l) => lotIds.includes(l.id)).map((l) => ({
+      id: l.id, itemId: l.itemId, variety: l.variety, harvest: l.harvest, milledOn: l.milledOn, milledAt: l.milledAt,
+      supplierName: allQuotes.find((q) => q.id === l.quoteId)?.supplierName ?? null,
+    }));
+    return { id: apt.id, name: apt.name, nameTa: apt.nameTa, captainName: apt.captain?.name ?? null, card, lots: lotInfo };
+  });
+
+  /** A resident's own record and orders. The id is a long random key held on their phone (interim, until OTP login). */
+  app.get<{ Params: { id: string } }>("/residents/:id", async (req) => {
+    const resident = await one(db.select().from(residents).where(eq(residents.id, req.params.id)), "Resident");
+    const mine = (await db.select().from(orders).where(eq(orders.residentId, resident.id))).map((r) => r.doc);
+    return { resident, orders: mine };
+  });
+
+  app.put<{ Params: { id: string } }>("/apartments/:id/captain-code", async (req) => {
+    const { code } = z.object({ code: z.string().min(6) }).parse(req.body);
+    await db.insert(captainCodes).values({ apartmentId: req.params.id, code }).onConflictDoUpdate({ target: captainCodes.apartmentId, set: { code } });
+    return { ok: true };
+  });
+
+  /** The captain's month: who ordered, who has paid, what to hand over, and the commission statement. */
+  app.get<{ Params: { id: string }; Querystring: { cycleId?: string } }>("/apartments/:id/roster", async (req) => {
+    const stored = (await db.select().from(captainCodes).where(eq(captainCodes.apartmentId, req.params.id)))[0];
+    if (!stored || req.headers["x-captain-code"] !== stored.code) refuse(401, "CAPTAIN_ONLY", "Wrong captain code.");
+    const cycleId = CycleId.parse(req.query.cycleId);
+    const rows = (await db.select().from(orders).where(and(eq(orders.cycleId, cycleId), eq(orders.apartmentId, req.params.id)))).map((r) => r.doc);
+    return {
+      cycleId,
+      paidHouseholds: new Set(rows.filter((o) => o.payment.state === "SETTLED").map((o) => o.flat)).size,
+      orders: rows.map((o) => ({ flat: o.flat, residentName: o.residentName, lines: o.lines, paymentState: o.payment.state })).sort((a, b) => a.flat.localeCompare(b.flat)),
+      ledger: await db.select().from(ledger).where(eq(ledger.apartmentId, req.params.id)),
+    };
+  });
+  }, { prefix: "/api" });
+
+  return root;
 }

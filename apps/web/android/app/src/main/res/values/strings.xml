@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kootu Maligai</string>
+    <string name="title_activity_main">Kootu Maligai</string>
+    <string name="package_name">in.kootumaligai.app</string>
+    <string name="custom_url_scheme">in.kootumaligai.app</string>
+</resources>

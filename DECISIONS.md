@@ -81,6 +81,20 @@ GUESS (a number to be learned from pilot data), OPEN (needs an answer).
   price is a promise.
 - **D22. The order amount is computed on the server from the card.** PROPOSED.
 
+- **D23. One codebase for web, iOS and Android.** DECIDED by the founder,
+  14 Nov 2026 (overrules "web first, native later"). A React web app,
+  wrapped with Capacitor for the two stores. The store apps are the same
+  screens in a native shell.
+- **D24. Default-deny access.** PROPOSED. Every backend route needs the
+  operations key unless it is on a short public list (see the card, join,
+  order, see your own order, captain roster with the captain code).
+- **D25. Interim identity.** PROPOSED, MUST CHANGE before real residents: a
+  resident is recognised by a long random key kept on their phone, and a
+  captain by a shared code. Phone-number OTP login needs an SMS provider.
+- **D26. One order per household per cycle.** PROPOSED.
+- **D27. Pilot payments: UPI link plus manual reconciliation.** DECIDED by
+  the founder, 14 Nov 2026. Razorpay to follow.
+
 ## Resolved conflicts
 - **O1. Margin cap.** Resolved by D9.
 - **O2. Quote validity.** DECIDED: QUOTE_STALE applies before publishing only,

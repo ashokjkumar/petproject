@@ -12,8 +12,9 @@ let clock = "2026-12-19T10:00:00+05:30";
 const CYCLE = "2027-01";
 const CLUSTER = "OMR-SOUTH";
 
-const post = (url: string, payload: unknown) => app.inject({ method: "POST", url, payload: payload as object });
-const put = (url: string, payload: unknown) => app.inject({ method: "PUT", url, payload: payload as object });
+const OPS = { "x-ops-key": "test-ops-key" };
+const post = (url: string, payload: unknown) => app.inject({ method: "POST", url: `/api${url}`, payload: payload as object, headers: OPS });
+const put = (url: string, payload: unknown) => app.inject({ method: "PUT", url: `/api${url}`, payload: payload as object, headers: OPS });
 
 const quote = (id: string, itemId: string, paise: number, over: object = {}) => ({
   id, supplierId: `s-${id}`, supplierName: "Delta Mill", supplierKind: "MILL", itemId, pricePerKgPaise: paise, form: "WRITTEN",
@@ -56,7 +57,7 @@ async function households(n: number, pay = true) {
 
 beforeEach(async () => {
   clock = "2026-12-19T10:00:00+05:30";
-  app = buildApp(await openDb(), () => clock);
+  app = buildApp(await openDb(), () => clock, { opsKey: "test-ops-key", upiVpa: null });
   await seed();
 });
 
@@ -140,7 +141,7 @@ describe("dispatch goes through the guards", () => {
     expect(po.json().paidOrders).toBe(16);
     expect(po.json().lines[0].totalGrams).toBe(400_000);
     expect(po.json().captainCommissionPaise).toBe(Math.floor((16 * 187_060 * 200) / 10_000));
-    const book = (await app.inject({ method: "GET", url: "/apartments/tower-a/ledger" })).json();
+    const book = (await app.inject({ method: "GET", url: "/api/apartments/tower-a/ledger", headers: OPS })).json();
     expect(book).toHaveLength(1);
     expect(book[0].kind).toBe("CAPTAIN_COMMISSION");
   });
@@ -171,5 +172,36 @@ describe("dispatch goes through the guards", () => {
     const po = await post(`/cycles/${CYCLE}/apartments/tower-a/purchase-order`, {});
     expect(po.json().error).toBe("GUARDS_NOT_PASSED");
     expect(po.json().reasons[0].code).toBe("LOT_OUT_OF_SPEC");
+  });
+});
+
+describe("who may do what", () => {
+  it("refuses operations actions without the operations key", async () => {
+    const res = await app.inject({ method: "POST", url: `/api/cycles/${CYCLE}/clusters/${CLUSTER}/price-card`, payload: { items: items() } });
+    expect(res.statusCode).toBe(401);
+    const pay = await app.inject({ method: "POST", url: "/api/orders/x/payment", payload: { state: "SETTLED", amountPaise: 1, upiRef: "x" } });
+    expect(pay.statusCode).toBe(401);
+  });
+  it("lets a resident see the card, join, order once, and see only their own order", async () => {
+    await post(`/cycles/${CYCLE}/clusters/${CLUSTER}/price-card`, { items: items() });
+    const pub = (await app.inject({ method: "GET", url: "/api/apartments/tower-a/public" })).json();
+    expect(pub.card.lines).toHaveLength(2);
+    expect(pub.lots[0].milledAt).toBe("Thanjavur");
+    const r = (await app.inject({ method: "POST", url: "/api/apartments/tower-a/residents", payload: { name: "Kavitha", flat: "B-202", phone: "9800000001", iConfirmIWantToJoin: true } })).json();
+    const order = { cycleId: CYCLE, residentId: r.id, lines: [{ itemId: "TOOR_DAL", packGrams: 4_000, packs: 1 }] };
+    expect((await app.inject({ method: "POST", url: "/api/orders", payload: order })).statusCode).toBe(201);
+    expect((await app.inject({ method: "POST", url: "/api/orders", payload: order })).json().error).toBe("ALREADY_ORDERED");
+    const me = (await app.inject({ method: "GET", url: `/api/residents/${r.id}` })).json();
+    expect(me.orders).toHaveLength(1);
+  });
+  it("shows the roster only with the captain code", async () => {
+    await post(`/cycles/${CYCLE}/clusters/${CLUSTER}/price-card`, { items: items() });
+    await households(3);
+    await put("/apartments/tower-a/captain-code", { code: "meena-2027" });
+    const url = `/api/apartments/tower-a/roster?cycleId=${CYCLE}`;
+    expect((await app.inject({ method: "GET", url, headers: { "x-captain-code": "guess" } })).statusCode).toBe(401);
+    const roster = (await app.inject({ method: "GET", url, headers: { "x-captain-code": "meena-2027" } })).json();
+    expect(roster.paidHouseholds).toBe(3);
+    expect(roster.orders[0]).not.toHaveProperty("phone");
   });
 });

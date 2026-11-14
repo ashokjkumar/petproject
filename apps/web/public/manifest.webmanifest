@@ -1,0 +1,9 @@
+{
+  "name": "கூட்டு மளிகை · Kootu Maligai",
+  "short_name": "Kootu Maligai",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf6ee",
+  "theme_color": "#1f4d3a",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
